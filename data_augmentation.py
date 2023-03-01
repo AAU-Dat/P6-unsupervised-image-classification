@@ -48,26 +48,24 @@ for i in folder_names:
         os.makedirs('./' + i)
 
     # Print the folder name
-    print("Folder: " + i)
+    print("\nFolder: " + i)
 
     # Loop through the mnist dataset loader
     for k, (image, label) in enumerate(mnist_dataset_loader):
-        # Print the progress for every 1000 images
-        if k % 1000 == 0:
-            print("Progress: " + str(k * 5) + "/" + str(len(mnist_dataset_loader) * 5))
+
+        # Print the progress in procent
+        print("\rProgress: " + str(round(k / len(mnist_dataset_loader) * 100, 2)) + "%", end='')
 
         # Save the original image to the i folder
         plt.imsave(i + '/' + str(k) + '_original.png', image[0][0], cmap='gray')
 
-
-        # Create cvs file and add the original image to it and two comma after the image name
+        # Create cvs file and add the original image to it and two comma after the image s
         with open(i + '.csv', 'a') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=',')
             csv_writer.writerow([str(k) + '_original.png', '', ''])
 
         # Create x amount of new image on the original image and save them without labels
         for j in range(3):
-
             # Create a new image with data augmentation features
             new_image, new_label = data_augmentation(image, label, i)
 
@@ -80,5 +78,5 @@ for i in folder_names:
                 csv_writer.writerow([str(k) + '_' + str(j) + '.png', '', ''])
 
         # Break the loop if the amount of images is x
-        #if k == 1:
+        #if k == 100:
         #    break

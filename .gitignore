@@ -1,6 +1,7 @@
 # Files
-**.DS_Store
+.DS_Store
+**.csv
 
 # Folders
 **/data
-**/.DS_Store
+**/data_*
