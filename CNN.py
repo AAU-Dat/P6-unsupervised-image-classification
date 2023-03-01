@@ -5,15 +5,42 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import pandas as pd
+from torchvision.io import read_image
+from torch.utils.data import Dataset
+from torchvision import datasets
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(torch.cuda.is_available())
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # runs on gpu
+print(device)
 
 #hyper-parameters
 num_epochs = 4
 batch_size = 4
 learning_rate = 0.001
 
+
 #data setup
+class CustomImageDataset(Dataset):
+    def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+        self.img_labels = pd.read_csv(annotations_file)
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        image = read_image(img_path)
+        if self.transform:
+            image = self.transform(image)
+        return image
+
+
+
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5), (0.5))])
 
 train_dataset = torchvision.datasets.MNIST(root='\data', train=True, download=True, transform=transform)
@@ -25,28 +52,8 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 
-classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
+# classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
 
-def imshow(img):
-    img = img / 2 + 0.5     # unnormalize
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
-
-
-# get some random training images
-dataiter = iter(train_loader)
-images, labels = next(dataiter)
-
-# show images
-imshow(torchvision.utils.make_grid(images))
-# print labels
-print(' '.join(f'{classes[j]:5s}' for j in labels.numpy()))
-
-
-# data augmentation
-# add images to seperate dataset
-# mearge datasets
 
 class ConvNet(nn.Module):
     def __init__(self):
@@ -83,7 +90,7 @@ for i, (images, labels) in enumerate(train_loader):
 
 print('Finished Training')
 PATH = './cnn.pth'
-torch.save(model.state_dict(), PATH)
+#torch.save(model.state_dict(), PATH)
 
 
 
