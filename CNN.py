@@ -19,6 +19,7 @@ print(device)
 num_epochs = 4
 batch_size = 4
 learning_rate = 0.001
+train_data = 'allTransforms'
 
 
 #data setup
@@ -35,15 +36,20 @@ class CustomImageDataset(Dataset):
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
         image = read_image(img_path)
+        label = self.img_labels.iloc[idx, 1]
+        knn = self.img_labels.iloc[idx, 2]
         if self.transform:
             image = self.transform(image)
-        return image
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label, knn
 
 
+root_dir = './data/' + train_data
 
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5), (0.5))])
+transform = transforms.Compose([transforms.ToTensor()])
 
-train_dataset = torchvision.datasets.MNIST(root='\data', train=True, download=True, transform=transform)
+train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
 
 test_dataset = torchvision.datasets.MNIST(root='\data', train=False, download=True, transform=transform)
 
@@ -53,6 +59,32 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, s
 
 
 # classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
+classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
+
+def imshow(img):
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show()
+
+
+# get some random training images
+dataiter = iter(train_loader)
+images, labels, knn = next(dataiter)
+
+# show images
+imshow(torchvision.utils.make_grid(images))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class ConvNet(nn.Module):
