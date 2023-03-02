@@ -109,7 +109,7 @@ class ConvNet(nn.Module):
 model = ConvNet().to(device)
 
 n_total_steps = len(train_loader)
-for i, (images, labels) in enumerate(train_loader):
+for i, (images, labels, knn) in enumerate(train_loader):
     # origin shape: [batch_size, 1, 28, 28] = batch_size, 1, 784
     # input_layer: 3 input channels, 6 output channels, 5 kernel size
     images = images.to(device)

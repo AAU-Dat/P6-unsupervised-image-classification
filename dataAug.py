@@ -44,11 +44,10 @@ for i in range(len(folderParths)):
 # generate and store images
 n_total_steps = len(train_loader)
 for i, (images, labels) in enumerate(train_loader):
-
     # saves the original
     for p in range(len(folderParths)):
         name = str(image_name) + '.png'
-        plt.imsave(name, images[0][0], cmap='gray')
+        plt.imsave(folderParths[p] + ops + name, images[0][0], cmap='gray')
         csv_files[p][1].writerow([name, '', ''])
 
     image_name += 1
@@ -66,7 +65,7 @@ for i, (images, labels) in enumerate(train_loader):
             tempimg = transformations[t](tempimg)
 
         name = str(image_name) + '.png'
-        plt.imsave(name, tempimg[0][0], cmap='gray')
+        plt.imsave(folderParths[len(folderParths) - 1] + ops + name, tempimg[0][0], cmap='gray')
         csv_files[len(folderParths) - 1][1].writerow([name, '', ''])
         image_name += 1
         plt.close()
