@@ -6,7 +6,7 @@ import csv
 import os
 
 
-batch_size = 1
+batch_size = 100
 # dashes for the op system
 ops = '/'
 image_name = 1
@@ -23,17 +23,21 @@ train_dataset = torchvision.datasets.MNIST(root='/data', train=True, download=Tr
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-if not os.path.exists(parentParth):
-    os.makedirs(parentParth)
-
+# generates the full parth to each dataset
 for i in range(len(folderParths)):
     folderParths[i] = parentParth + ops + folderParths[i]
 
+# checks if the data folder exists and makes it
+if not os.path.exists(parentParth):
+    os.makedirs(parentParth)
+
+# checks if the dataset folders exists and makes it
 for i in folderParths:
     if not os.path.exists(i):
         os.makedirs(i)
 
 
+# opens and makes a writer to all csv files
 csv_files = []
 for i in range(len(folderParths)):
     csv_file = open(folderParths[i] + ops + 'data.csv', 'w')
@@ -42,33 +46,37 @@ for i in range(len(folderParths)):
 
 
 # generate and store images
-n_total_steps = len(train_loader)
 for i, (images, labels) in enumerate(train_loader):
-    # saves the original
-    for p in range(len(folderParths)):
-        name = str(image_name) + '.png'
-        plt.imsave(folderParths[p] + ops + name, images[0][0], cmap='gray')
-        csv_files[p][1].writerow([name, '', ''])
 
-    image_name += 1
+    # loops through the batches
+    for batch_number in range(len(images)):
 
-    if image_name % 10000 == 0:
-        print(str(image_name) + " / " + str(60000 * num_of_augments + 1))
-
-    # saves augments
-    for j in range(num_of_augments):
-        tempimg = images
-        for t in range(len(transformations)):
+        # save original pictures
+        for p in range(len(folderParths)):
             name = str(image_name) + '.png'
-            plt.imsave(folderParths[t] + ops + str(image_name) + '.png', transformations[t](images)[0][0], cmap='gray')
-            csv_files[t][1].writerow([name, '', ''])
-            tempimg = transformations[t](tempimg)
+            plt.imsave(folderParths[p] + ops + name, images[batch_number].squeeze().numpy(), cmap='gray')
+            csv_files[p][1].writerow([name, '', ''])
 
-        name = str(image_name) + '.png'
-        plt.imsave(folderParths[len(folderParths) - 1] + ops + name, tempimg[0][0], cmap='gray')
-        csv_files[len(folderParths) - 1][1].writerow([name, '', ''])
         image_name += 1
-        plt.close()
 
+        # save augmented pictures
+        for j in range(num_of_augments):
+            tempimg = images[batch_number]
+
+            #saves all single type augments
+            for t in range(len(transformations)):
+                name = str(image_name) + '.png'
+                plt.imsave(folderParths[t] + ops + str(image_name) + '.png', transformations[t](images[batch_number]).squeeze().numpy(), cmap='gray')
+                csv_files[t][1].writerow([name, '', ''])
+                tempimg = transformations[t](tempimg)
+
+            # saves pictures with all types of augments
+            name = str(image_name) + '.png'
+            plt.imsave(folderParths[len(folderParths) - 1] + ops + name, tempimg.squeeze().numpy(), cmap='gray')
+            csv_files[len(folderParths) - 1][1].writerow([name, '', ''])
+            image_name += 1
+            plt.close()
+
+# closes files
 for i in range(len(folderParths)):
     csv_files[i][0].close()
