@@ -13,7 +13,7 @@ import csv
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Download mnist dataset
-mnist_dataset_downloaded = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+mnist_dataset_downloaded = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.ToTensor())
 print("Length of mnist dataset: " + str(len(mnist_dataset_downloaded)) + " images.")
 
 # Create a loader for the mnist dataset without the labels
@@ -33,7 +33,7 @@ def data_augmentation(image, label, i):
 
     # Add crop to the image
     if i == 'data_augmentation_crop' or i == 'data_augmentation_all_together':
-        image = transforms.RandomCrop((28, 28), padding=4)(image)
+        image = transforms.RandomCrop((32, 32), padding=4)(image)
 
     # Return the image and label
     return image, label
@@ -57,7 +57,8 @@ for i in folder_names:
         print("\rProgress: " + str(round(k / len(mnist_dataset_loader) * 100, 2)) + "%", end='')
 
         # Save the original image to the i folder
-        plt.imsave(i + '/' + str(k) + '_original.png', image[0][0], cmap='gray')
+        temp_im = np.transpose(image[0], (1, 2, 0))
+        plt.imsave(i + '/' + str(k) + '_original.png', temp_im[0][0])
 
         # Create cvs file and add the original image to it and two comma after the image s
         with open(i + '.csv', 'a') as csv_file:
@@ -70,7 +71,8 @@ for i in folder_names:
             new_image, new_label = data_augmentation(image, label, i)
 
             # Save the augmented image to the i folder
-            plt.imsave(i + '/' + str(k) + '_' + str(j) + '.png', new_image[0][0], cmap='gray')
+            
+            plt.imsave(i + '/' + str(k) + '_' + str(j) + '.png', temp_im[0][0])
 
             # Add the new image to the csv file
             with open(i + '.csv', 'a') as csv_file:
@@ -78,5 +80,5 @@ for i in folder_names:
                 csv_writer.writerow([str(k) + '_' + str(j) + '.png', '', ''])
 
         # Break the loop if the amount of images is x
-        #if k == 100:
-        #    break
+        if k == 100:
+            break
