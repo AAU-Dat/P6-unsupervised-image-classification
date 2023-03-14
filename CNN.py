@@ -11,18 +11,17 @@ from torchvision.io import read_image
 from torch.utils.data import Dataset
 from torchvision import datasets
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on gpu
 print(torch.cuda.is_available())
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # runs on gpu
-print(device)
 
-#hyper-parameters
+# Hyper-parameters
 num_epochs = 4
 batch_size = 1
 learning_rate = 0.001
-train_data = 'allTransforms'
+train_data = 'MNIST_allTransforms'
 
 
-#data setup
+# Data setup
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
         self.img_labels = pd.read_csv(annotations_file)
@@ -47,32 +46,21 @@ class CustomImageDataset(Dataset):
 
 
 root_dir = './data/' + train_data
-
 transformer = transforms.Compose([transforms.ToTensor()])
 
 train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
-
-test_dataset = torchvision.datasets.MNIST(root='\data', train=False, download=True, transform=transformer)
+test_dataset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transformer)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-
-classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
+# classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
 
 
 def imshow(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
-
-
-
-
-
-
-
 
 
 class ConvNet(nn.Module):
@@ -98,7 +86,7 @@ class ConvNet(nn.Module):
 
 model = ConvNet().to(device)
 
-
+"""
 n_total_steps = len(train_loader)
 for i, (images, labels, knn) in enumerate(train_loader):
     # origin shape: [batch_size, 1, 28, 28] = batch_size, 1, 784
@@ -111,3 +99,4 @@ for i, (images, labels, knn) in enumerate(train_loader):
     print('hi')
     if (i + 1) % 2000 == 0:
         print(f'Step [{i + 1}/{n_total_steps}]')
+"""
