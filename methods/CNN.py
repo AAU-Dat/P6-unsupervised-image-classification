@@ -64,7 +64,7 @@ def imshow(img):
 
 
 class ConvNet(nn.Module):
-    def __init__(self, convolutions, pooling_size, layers_and_nodes):
+    def __init__(self, convolutions, pooling_size, layers):
         super(ConvNet, self).__init__()
         # import configs to tell which dataset we are running on
         mnist = [1, 28]
@@ -74,23 +74,35 @@ class ConvNet(nn.Module):
             convs = nn.Conv2d(temp[0], convolutions[i][0], convolutions[i][1])
             temp[1] = (temp[1] - ((convolutions[1]-1)/2))/pooling_size
 
-        layers_nodes = []
-        for i in layers_and_nodes:
-
+        layers_temp = []
+        for i in layers:
+            layers_temp = nn.Linear(temp[0]*temp[1]*temp[1], layers[i])
 
         self.convs = convs
         self.pooling = nn.MaxPool2d(pooling_size, pooling_size)
+        self.layers = layers_temp
 
 
-
+        '''
         self.conv1 = nn.Conv2d(1, 4, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(4, 16, 3)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
+        '''
 
     def forward(self, x):
+        for i in self.convs:
+            x = self.pooling(F.relu(self.convs[i](x)))
+        for i in self.layers:
+            x = F.relu(self.layers[i](x))
+
+
+
+
+
+        '''
         # -> n, 1, 28, 28
         x = self.pool(F.relu(self.conv1(x)))  # -> n, 4, 12, 12
         x = self.pool(F.relu(self.conv2(x)))  # -> n, 16, 5, 5
@@ -98,6 +110,7 @@ class ConvNet(nn.Module):
         x = F.relu(self.fc1(x))  # -> n, 200
         x = F.relu(self.fc2(x))  # -> n, 100
         x = self.fc3(x)  # -> n, 10
+        '''
         return x
 
 
