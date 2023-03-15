@@ -64,25 +64,8 @@ def imshow(img):
 
 
 class ConvNet(nn.Module):
-    def __init__(self, convolutions, pooling_size, layers_and_nodes):
+    def __init__(self):
         super(ConvNet, self).__init__()
-        # import configs to tell which dataset we are running on
-        mnist = [1, 28]
-        temp = mnist
-        convs = []
-        for i in convolutions:
-            convs = nn.Conv2d(temp[0], convolutions[i][0], convolutions[i][1])
-            temp[1] = (temp[1] - ((convolutions[1]-1)/2))/pooling_size
-
-        layers_nodes = []
-        for i in layers_and_nodes:
-
-
-        self.convs = convs
-        self.pooling = nn.MaxPool2d(pooling_size, pooling_size)
-
-
-
         self.conv1 = nn.Conv2d(1, 4, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(4, 16, 3)
