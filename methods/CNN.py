@@ -9,14 +9,14 @@ import os
 import pandas as pd
 from torchvision.io import read_image
 from torch.utils.data import Dataset
-import sklearn.cluster as neighbors
+from sklearn.cluster import KMeans
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on gpu
 print(torch.cuda.is_available())
 
 # Hyper-parameters
 num_epochs = 4
-batch_size = 5
+batch_size = 100
 learning_rate = 0.001
 train_data = 'MNIST_allTransforms'
 
@@ -113,15 +113,15 @@ for i, (images, labels, knns) in enumerate(train_loader):
     # input_layer: 1 input channels, 6 output channels, 5 kernel size
     images = images.to(device)
     outputs = model(images)
-    # imshow(torchvision.utils.make_grid(images))
     # k_nn = neighbors.NearestNeighbors(n_neighbors=2)
     # k_nn.fit(outputs.detach().numpy())
     # res = k_nn.kneighbors(outputs.detach().numpy(), 2, return_distance=True)
-    k_means = neighbors.KMeans(n_clusters=10)
+    k_means = KMeans(n_clusters=10, n_init='auto')
     k_means.fit(outputs.detach().numpy())
     res = k_means.predict(outputs.detach().numpy())
     print(outputs)
-    print(k_means)
+    print(res)
+    imshow(torchvision.utils.make_grid(images))
 
     if (i + 1) % 2000 == 0:
         print(f'Step [{i + 1}/{n_total_steps}]')
