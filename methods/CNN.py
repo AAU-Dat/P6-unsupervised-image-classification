@@ -9,14 +9,14 @@ import os
 import pandas as pd
 from torchvision.io import read_image
 from torch.utils.data import Dataset
-from torchvision import datasets
+import sklearn.cluster as neighbors
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on gpu
 print(torch.cuda.is_available())
 
 # Hyper-parameters
 num_epochs = 4
-batch_size = 1
+batch_size = 5
 learning_rate = 0.001
 train_data = 'MNIST_allTransforms'
 
@@ -45,7 +45,7 @@ class CustomImageDataset(Dataset):
         return image, label, knn
 
 
-root_dir = './data/' + train_data
+root_dir = '../data/' + train_data
 transformer = transforms.Compose([transforms.ToTensor()])
 
 train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
@@ -66,66 +66,62 @@ def imshow(img):
 class ConvNet(nn.Module):
     def __init__(self, convolutions, pooling_size, layers):
         super(ConvNet, self).__init__()
-        # import configs to tell which dataset we are running on
-        mnist = [1, 28]
-        temp = mnist
-        convs = []
-        for i in convolutions:
-            convs = nn.Conv2d(temp[0], convolutions[i][0], convolutions[i][1])
-            temp[1] = (temp[1] - ((convolutions[1]-1)/2))/pooling_size
+        # temp = image shape 1 color channel 28x28 pixels
+        temp = [1, 28]
 
+        # convolutions is set acording to the temp and convolutions
+        convs = []
+        convs.append(nn.Conv2d(temp[0], convolutions[0][0], convolutions[0][1]))
+        temp[1] = int((temp[1] - (convolutions[0][1] - 1)) / pooling_size)
+        for i in range(1, len(convolutions)):
+            temp[0] = convolutions[i][0]
+            temp[1] = int((temp[1] - (convolutions[i][1] - 1)) / pooling_size)
+            convs.append(nn.Conv2d(convolutions[i-1][0], convolutions[i][0], convolutions[i][1]))
+
+        # layers is set acording to convolution outputs and layers
         layers_temp = []
-        for i in layers:
-            layers_temp = nn.Linear(temp[0]*temp[1]*temp[1], layers[i])
+        layers_temp.append(nn.Linear(temp[0] * int(temp[1]) * int(temp[1]), layers[0]))
+        for i in range(1, len(layers)):
+            layers_temp.append(nn.Linear(layers[i-1], layers[i]))
 
         self.convs = convs
-        self.pooling = nn.MaxPool2d(pooling_size, pooling_size)
+        self.pool = nn.MaxPool2d(pooling_size, pooling_size)
         self.layers = layers_temp
 
 
-        '''
-        self.conv1 = nn.Conv2d(1, 4, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(4, 16, 3)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-        '''
-
     def forward(self, x):
         for i in self.convs:
-            x = self.pooling(F.relu(self.convs[i](x)))
+            x = self.pool(F.relu(i(x)))
+        x = x.view(-1, 16 * 5 * 5)
         for i in self.layers:
-            x = F.relu(self.layers[i](x))
-
-
-
-
-
-        '''
-        # -> n, 1, 28, 28
-        x = self.pool(F.relu(self.conv1(x)))  # -> n, 4, 12, 12
-        x = self.pool(F.relu(self.conv2(x)))  # -> n, 16, 5, 5
-        x = x.view(-1, 16 * 5 * 5)  # -> n, 400
-        x = F.relu(self.fc1(x))  # -> n, 200
-        x = F.relu(self.fc2(x))  # -> n, 100
-        x = self.fc3(x)  # -> n, 10
-        '''
+            x = F.relu(i(x))
         return x
 
 
-model = ConvNet().to(device)
+# convolution settings = [[output channeels, kernel size(must be uneven)]] where legth of the outer array is the number of convolutions
+convolutions = [[4, 5], [16, 3]]
+# pooling size is the size of the kernel
+pooling_size = 2
+# layers = [output variables]  where length of the outer array is the number of nn layers
+layers = [120, 84, 10]
+model = ConvNet(convolutions, pooling_size, layers).to(device)
 
 
 n_total_steps = len(train_loader)
-for i, (images, labels, knn) in enumerate(train_loader):
+for i, (images, labels, knns) in enumerate(train_loader):
     # origin shape: [batch_size, 1, 28, 28] = batch_size, 1, 784
     # input_layer: 1 input channels, 6 output channels, 5 kernel size
     images = images.to(device)
     outputs = model(images)
-    print(outputs.shape)
+    # imshow(torchvision.utils.make_grid(images))
+    # k_nn = neighbors.NearestNeighbors(n_neighbors=2)
+    # k_nn.fit(outputs.detach().numpy())
+    # res = k_nn.kneighbors(outputs.detach().numpy(), 2, return_distance=True)
+    k_means = neighbors.KMeans(n_clusters=10)
+    k_means.fit(outputs.detach().numpy())
+    res = k_means.predict(outputs.detach().numpy())
     print(outputs)
-    imshow(torchvision.utils.make_grid(images))
-    print('hi')
+    print(k_means)
+
     if (i + 1) % 2000 == 0:
         print(f'Step [{i + 1}/{n_total_steps}]')
