@@ -16,7 +16,7 @@ print(torch.cuda.is_available())
 
 # Hyper-parameters
 num_epochs = 4
-batch_size = 100
+batch_size = 20
 learning_rate = 0.001
 train_data = 'MNIST_allTransforms'
 
@@ -49,7 +49,7 @@ root_dir = '../data/' + train_data
 transformer = transforms.Compose([transforms.ToTensor()])
 
 train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
-test_dataset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transformer)
+test_dataset = torchvision.datasets.MNIST(root='../data', train=False, download=True, transform=transformer)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -116,11 +116,12 @@ for i, (images, labels, knns) in enumerate(train_loader):
     # k_nn = neighbors.NearestNeighbors(n_neighbors=2)
     # k_nn.fit(outputs.detach().numpy())
     # res = k_nn.kneighbors(outputs.detach().numpy(), 2, return_distance=True)
-    k_means = KMeans(n_clusters=10, n_init='auto')
+    k_means = KMeans(n_clusters=10)
     k_means.fit(outputs.detach().numpy())
     res = k_means.predict(outputs.detach().numpy())
     print(outputs)
     print(res)
+    print(labels)
     imshow(torchvision.utils.make_grid(images))
 
     if (i + 1) % 2000 == 0:

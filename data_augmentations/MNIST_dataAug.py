@@ -6,7 +6,7 @@ import csv
 import os
 
 # how many images we load from memory at a time
-batch_size = 100
+batch_size = 60000
 # the conter that decides what the image is called
 image_name = 1
 # number of random augments per image
@@ -17,7 +17,7 @@ dataset = '/MNIST'
 image_type = 'gray'
 
 # where all data should be stored
-parentParth = './data'
+parentParth = '../data'
 # folder endpoint for each transformation (index should match with transformation array)
 folderParths = ['_rotated', '_cropped', '_blurred', '_allTransforms']
 # transformations (index should match with folderparths array)
@@ -27,7 +27,7 @@ transformations = [transforms.RandomRotation(degrees=(-85, 85)), transforms.Rand
 transform = transforms.Compose([transforms.ToTensor()])
 
 # the dataset downloaded (should match with the dataset name in the variable dataset)
-train_dataset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+train_dataset = torchvision.datasets.MNIST(root=parentParth, train=True, download=True, transform=transform)
 
 
 
@@ -67,7 +67,7 @@ for i, (images, labels) in enumerate(train_loader):
 
         # save original pictures
         for p in range(len(folderParths)):
-            name = '/' + str(image_name) + '.png'
+            name = str(image_name) + '.png'
             plt.imsave(folderParths[p] + name, images[batch_number].squeeze().numpy(), cmap=image_type)
             csv_files[p][1].writerow([name, '', ''])
 
@@ -79,13 +79,13 @@ for i, (images, labels) in enumerate(train_loader):
 
             #saves all single type augments
             for t in range(len(transformations)):
-                name = '/' + str(image_name) + '.png'
+                name = str(image_name) + '.png'
                 plt.imsave(folderParths[t] + name, transformations[t](images[batch_number]).squeeze().numpy(), cmap=image_type)
                 csv_files[t][1].writerow([name, '', ''])
                 tempimg = transformations[t](tempimg)
 
             # saves pictures with all types of augments
-            name = '/' + str(image_name) + '.png'
+            name = str(image_name) + '.png'
             plt.imsave(folderParths[len(folderParths) - 1] + name, tempimg.squeeze().numpy(), cmap=image_type)
             csv_files[len(folderParths) - 1][1].writerow([name, '', ''])
             image_name += 1
