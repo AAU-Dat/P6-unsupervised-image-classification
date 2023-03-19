@@ -16,8 +16,8 @@ print(torch.cuda.is_available())
 
 # Hyper-parameters
 num_epochs = 4
-batch_size = 20
-learning_rate = 0.001
+batch_size_train = 10000
+batch_size_test = 10
 train_data = 'MNIST_allTransforms'
 
 
@@ -48,11 +48,12 @@ class CustomImageDataset(Dataset):
 root_dir = '../data/' + train_data
 transformer = transforms.Compose([transforms.ToTensor()])
 
-train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
+# train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
+train_dataset = torchvision.datasets.MNIST(root='../data', train=True, download=True, transform=transformer)
 test_dataset = torchvision.datasets.MNIST(root='../data', train=False, download=True, transform=transformer)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size_test, shuffle=False)
 
 # classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
 
@@ -105,10 +106,11 @@ pooling_size = 2
 # layers = [output variables]  where length of the outer array is the number of nn layers
 layers = [120, 84, 10]
 model = ConvNet(convolutions, pooling_size, layers).to(device)
+k_means = KMeans(n_clusters=10)
 
 
 n_total_steps = len(train_loader)
-for i, (images, labels, knns) in enumerate(train_loader):
+for i, (images, labels) in enumerate(train_loader):
     # origin shape: [batch_size, 1, 28, 28] = batch_size, 1, 784
     # input_layer: 1 input channels, 6 output channels, 5 kernel size
     images = images.to(device)
@@ -116,13 +118,16 @@ for i, (images, labels, knns) in enumerate(train_loader):
     # k_nn = neighbors.NearestNeighbors(n_neighbors=2)
     # k_nn.fit(outputs.detach().numpy())
     # res = k_nn.kneighbors(outputs.detach().numpy(), 2, return_distance=True)
-    k_means = KMeans(n_clusters=10)
     k_means.fit(outputs.detach().numpy())
-    res = k_means.predict(outputs.detach().numpy())
-    print(outputs)
-    print(res)
-    print(labels)
-    imshow(torchvision.utils.make_grid(images))
 
     if (i + 1) % 2000 == 0:
         print(f'Step [{i + 1}/{n_total_steps}]')
+    break
+
+
+for i, (images, labels) in enumerate(test_loader):
+    outputs = model(images)
+    res = k_means.predict(outputs.detach().numpy())
+    print(res)
+    print(labels.numpy())
+    imshow(images)
