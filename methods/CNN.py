@@ -1,3 +1,4 @@
+import numpy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,8 +17,8 @@ print(torch.cuda.is_available())
 
 # Hyper-parameters
 num_epochs = 4
-batch_size_train = 10000
-batch_size_test = 10
+batch_size_train = 60000
+batch_size_test = 10000
 train_data = 'MNIST_allTransforms'
 
 
@@ -85,6 +86,7 @@ class ConvNet(nn.Module):
         for i in range(1, len(layers)):
             layers_temp.append(nn.Linear(layers[i-1], layers[i]))
 
+        self.output_from_convs = temp[0] * int(temp[1]) * int(temp[1])
         self.convs = convs
         self.pool = nn.MaxPool2d(pooling_size, pooling_size)
         self.layers = layers_temp
@@ -93,18 +95,18 @@ class ConvNet(nn.Module):
     def forward(self, x):
         for i in self.convs:
             x = self.pool(F.relu(i(x)))
-        x = x.view(-1, 16 * 5 * 5)
+        x = x.view(-1, self.output_from_convs)
         for i in self.layers:
             x = F.relu(i(x))
         return x
 
 
 # convolution settings = [[output channeels, kernel size(must be uneven)]] where legth of the outer array is the number of convolutions
-convolutions = [[4, 5], [16, 3]]
+convolutions = [[10, 5], [20, 3]]
 # pooling size is the size of the kernel
 pooling_size = 2
 # layers = [output variables]  where length of the outer array is the number of nn layers
-layers = [120, 84, 10]
+layers = [200, 100]
 model = ConvNet(convolutions, pooling_size, layers).to(device)
 k_means = KMeans(n_clusters=10)
 
@@ -125,9 +127,45 @@ for i, (images, labels) in enumerate(train_loader):
     break
 
 
+# eval
+eval = numpy.zeros((10, 10))
 for i, (images, labels) in enumerate(test_loader):
     outputs = model(images)
     res = k_means.predict(outputs.detach().numpy())
-    print(res)
-    print(labels.numpy())
-    imshow(images)
+    label = labels.numpy()
+    for i in range(len(res)):
+        eval[res[i]][label[i]] += 1
+    break
+
+#self label
+reps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+for i in range(10):
+    for j in range(10):
+        if eval[i][j] > reps[i]:
+            reps[i] = j
+
+
+# find correct and wrong answers
+right = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+wrong = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+for i in range(10):
+    for j in range(10):
+        if reps[i] != j:
+            wrong[i] += eval[i][j]
+        else:
+            right[i] += eval[i][j]
+
+
+# find accuracy
+accuarcy = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+wrongs = 0
+rights = 0
+for i in range(10):
+    wrongs += wrong[i]
+    rights += right[i]
+    accuarcy[i] = right[i]/(right[i] + wrong[i])
+
+print(accuarcy)
+print(rights)
+print(wrongs)
+print(rights/(rights + wrongs))
