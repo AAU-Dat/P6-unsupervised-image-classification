@@ -19,7 +19,7 @@ print(torch.cuda.is_available())
 batch_size_train = 300000
 batch_size_test = 10000
 train_data = 'MNIST_allTransforms'
-clusters = 10
+clusters = 60000
 
 
 # Data setup
@@ -49,8 +49,8 @@ class CustomImageDataset(Dataset):
 root_dir = '../data/' + train_data
 transformer = transforms.Compose([transforms.ToTensor()])
 
-train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
-# train_dataset = torchvision.datasets.MNIST(root='../data', train=True, download=True, transform=transformer)
+# train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
+train_dataset = torchvision.datasets.MNIST(root='../data', train=True, download=True, transform=transformer)
 test_dataset = torchvision.datasets.MNIST(root='../data', train=False, download=True, transform=transformer)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
@@ -108,7 +108,7 @@ pooling_size = 2
 # layers = [output variables]  where length of the outer array is the number of nn layers
 layers = [120, 84]
 model = ConvNet(convolutions, pooling_size, layers).to(device)
-k_means = KMeans(n_clusters=clusters, n_init='auto')
+k_means = KMeans(n_clusters=clusters, n_init=5)
 
 
 n_total_steps = len(train_loader)
