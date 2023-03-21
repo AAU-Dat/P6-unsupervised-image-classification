@@ -15,11 +15,11 @@ from sklearn.cluster import KMeans
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on gpu
 print(torch.cuda.is_available())
 
-# Hyper-parameters
-num_epochs = 4
-batch_size_train = 60000
+# Parameters
+batch_size_train = 300000
 batch_size_test = 10000
 train_data = 'MNIST_allTransforms'
+clusters = 10
 
 
 # Data setup
@@ -43,14 +43,14 @@ class CustomImageDataset(Dataset):
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
-        return image, label, knn
+        return image, label
 
 
 root_dir = '../data/' + train_data
 transformer = transforms.Compose([transforms.ToTensor()])
 
-# train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
-train_dataset = torchvision.datasets.MNIST(root='../data', train=True, download=True, transform=transformer)
+train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
+# train_dataset = torchvision.datasets.MNIST(root='../data', train=True, download=True, transform=transformer)
 test_dataset = torchvision.datasets.MNIST(root='../data', train=False, download=True, transform=transformer)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
@@ -102,13 +102,13 @@ class ConvNet(nn.Module):
 
 
 # convolution settings = [[output channeels, kernel size(must be uneven)]] where legth of the outer array is the number of convolutions
-convolutions = [[10, 5], [20, 3]]
+convolutions = [[3, 5], [16, 3]]
 # pooling size is the size of the kernel
 pooling_size = 2
 # layers = [output variables]  where length of the outer array is the number of nn layers
-layers = [200, 100]
+layers = [120, 84]
 model = ConvNet(convolutions, pooling_size, layers).to(device)
-k_means = KMeans(n_clusters=10)
+k_means = KMeans(n_clusters=clusters, n_init='auto')
 
 
 n_total_steps = len(train_loader)
@@ -128,7 +128,7 @@ for i, (images, labels) in enumerate(train_loader):
 
 
 # eval
-eval = numpy.zeros((10, 10))
+eval = numpy.zeros((clusters, 10))
 for i, (images, labels) in enumerate(test_loader):
     outputs = model(images)
     res = k_means.predict(outputs.detach().numpy())
@@ -138,17 +138,26 @@ for i, (images, labels) in enumerate(test_loader):
     break
 
 #self label
-reps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-for i in range(10):
+reps = []
+for i in range(clusters):
+    reps.append(0)
+
+for i in range(clusters):
     for j in range(10):
-        if eval[i][j] > reps[i]:
+        if eval[i][j] > eval[i][reps[i]]:
             reps[i] = j
 
 
 # find correct and wrong answers
-right = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-wrong = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-for i in range(10):
+right = []
+for i in range(clusters):
+    right.append(0)
+
+wrong = []
+for i in range(clusters):
+    wrong.append(0)
+
+for i in range(clusters):
     for j in range(10):
         if reps[i] != j:
             wrong[i] += eval[i][j]
@@ -157,15 +166,22 @@ for i in range(10):
 
 
 # find accuracy
-accuarcy = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+accuarcy = []
+for i in range(clusters):
+    accuarcy.append(0)
+
 wrongs = 0
 rights = 0
 for i in range(10):
     wrongs += wrong[i]
     rights += right[i]
-    accuarcy[i] = right[i]/(right[i] + wrong[i])
+    if right[i] != 0 and (right[i] + wrong[i]) != 0:
+        accuarcy[i] = right[i]/(right[i] + wrong[i])
 
+print(eval)
+print(reps)
 print(accuarcy)
 print(rights)
 print(wrongs)
-print(rights/(rights + wrongs))
+if rights != 0 and (rights + wrongs) != 0:
+    print(rights/(rights + wrongs))
