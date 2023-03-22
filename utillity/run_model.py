@@ -4,6 +4,7 @@ import numpy
 def train_model(model, train_loader, device, break_after_2=False):
     # train the model
     n_total_steps = len(train_loader)
+    print(f"\r0 out of {n_total_steps}", end="")
     for i, (images, labels) in enumerate(train_loader):
         images = images.to(device)
         model.fit(images)

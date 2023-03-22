@@ -7,7 +7,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on
 print(torch.cuda.is_available())
 
 # Parameters
+'!!!WARNING!!!'
+# this method MUST train on the whole dataset at once
 batch_size = 100
+'!!!WARNING!!!'
 train_data = 'MNIST_allTransforms'
 clusters = 10
 
@@ -44,7 +47,7 @@ def main():
     model = CNN__k_means(convolutions, pooling_size, layers, image_shape)
 
     # train model
-    train_model(model, train_loader, device, break_after_2=True)
+    train_model(model, train_loader, device)
 
     # test and evaluate model
     evaluate_model(model, test_loader)
