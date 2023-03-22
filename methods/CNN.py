@@ -11,18 +11,17 @@ from torchvision.io import read_image
 from torch.utils.data import Dataset
 from torchvision import datasets
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on gpu
 print(torch.cuda.is_available())
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # runs on gpu
-print(device)
 
-#hyper-parameters
+# Hyper-parameters
 num_epochs = 4
 batch_size = 1
 learning_rate = 0.001
-train_data = 'allTransforms'
+train_data = 'MNIST_allTransforms'
 
 
-#data setup
+# Data setup
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
         self.img_labels = pd.read_csv(annotations_file)
@@ -47,19 +46,15 @@ class CustomImageDataset(Dataset):
 
 
 root_dir = './data/' + train_data
-
 transformer = transforms.Compose([transforms.ToTensor()])
 
 train_dataset = CustomImageDataset(root_dir + '/data.csv', root_dir)
-
-test_dataset = torchvision.datasets.MNIST(root='\data', train=False, download=True, transform=transformer)
+test_dataset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transformer)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-
-classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
+# classes = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9'}
 
 
 def imshow(img):
@@ -68,16 +63,26 @@ def imshow(img):
     plt.show()
 
 
-
-
-
-
-
-
-
 class ConvNet(nn.Module):
-    def __init__(self):
+    def __init__(self, convolutions, pooling_size, layers_and_nodes):
         super(ConvNet, self).__init__()
+        # import configs to tell which dataset we are running on
+        mnist = [1, 28]
+        temp = mnist
+        convs = []
+        for i in convolutions:
+            convs = nn.Conv2d(temp[0], convolutions[i][0], convolutions[i][1])
+            temp[1] = (temp[1] - ((convolutions[1]-1)/2))/pooling_size
+
+        layers_nodes = []
+        for i in layers_and_nodes:
+
+
+        self.convs = convs
+        self.pooling = nn.MaxPool2d(pooling_size, pooling_size)
+
+
+
         self.conv1 = nn.Conv2d(1, 4, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(4, 16, 3)
