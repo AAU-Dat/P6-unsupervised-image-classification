@@ -1,9 +1,12 @@
 # Files
 .DS_Store
 **.csv
+**.idea/*
+
 
 # Folders
+**/cifar10_dataset*
+**/data*
 **/data
-**/data_*
 **/.idea
 **/idea	
