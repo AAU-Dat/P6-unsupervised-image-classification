@@ -60,12 +60,11 @@ for i, (images, labels) in enumerate(train_loader):
     # Show percentage of images done
     print('\r' + str(i * batch_size) + '/' + str(len(train_dataset)), end='')
 
+    # Show percentage of images done
+    print('\r' + str(i * batch_size) + '/' + str(len(train_dataset)), end='')
+
     # loops through the batches
     for batch_number in range(len(images)):
-
-        # Stop after 5 batches
-        if i == batch_size:
-            break
 
         # save original pictures
         for p in range(len(folderParths)):
