@@ -6,7 +6,7 @@ import csv
 import os
 
 # how many images we load from memory at a time
-batch_size = 100
+batch_size = 5
 # the conter that decides what the image is called
 image_name = 1
 # number of random augments per image
@@ -17,23 +17,18 @@ dataset = '/MNIST'
 image_type = 'gray'
 
 # where all data should be stored
-parentParth = './data'
+parentParth = '../data'
 # folder endpoint for each transformation (index should match with transformation array)
 folderParths = ['_rotated', '_cropped', '_blurred', '_allTransforms']
 # transformations (index should match with folderparths array)
-transformations = [transforms.RandomRotation(degrees=(-85, 85)), transforms.RandomCrop((28, 28), padding=8), transforms.GaussianBlur(5)]
+# Old settings where: Rotate: -180 to 180, Crop: 8, Blur: 5
+transformations = [transforms.RandomRotation(degrees=(-40, 40)), transforms.RandomCrop((28, 28), padding=4), transforms.GaussianBlur(3, sigma=(0.1, 2.0))]
 
 # the basic transformation for the image when loaded from memory
 transform = transforms.Compose([transforms.ToTensor()])
 
 # the dataset downloaded (should match with the dataset name in the variable dataset)
-train_dataset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-
-
-
-
-
-
+train_dataset = torchvision.datasets.MNIST(root='../data', train=True, download=True, transform=transform)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 
@@ -65,6 +60,10 @@ for i, (images, labels) in enumerate(train_loader):
     # loops through the batches
     for batch_number in range(len(images)):
 
+        # Stop after 5 batches
+        if i == batch_size:
+            break
+
         # save original pictures
         for p in range(len(folderParths)):
             name = '/' + str(image_name) + '.png'
@@ -72,7 +71,6 @@ for i, (images, labels) in enumerate(train_loader):
             csv_files[p][1].writerow([name, '', ''])
 
         image_name += 1
-
         # save augmented pictures
         for j in range(num_of_augments):
             tempimg = images[batch_number]
