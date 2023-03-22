@@ -1,6 +1,16 @@
+import numpy
 
 
-
+def train_model(model, train_loader, device, break_after_2=False):
+    # train the model
+    n_total_steps = len(train_loader)
+    for i, (images, labels) in enumerate(train_loader):
+        images = images.to(device)
+        model.fit(images)
+        print(f"\r{i} out of {n_total_steps}", end="")
+        if break_after_2 and i == 2:
+            break
+    print("\n")
 
 
 def evaluate_model(model, test_loader):

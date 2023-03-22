@@ -2,30 +2,32 @@ import torch.nn as nn
 
 
 class CNN(nn.Module):
-    def __init__(self, convolutions, pooling_size, layers):
+    def __init__(self, convolutions, pooling_size, layers, image_shape):
         super(CNN, self).__init__()
-        # temp = image shape 1 color channel 28x28 pixels
-        temp = [1, 28]
+        # convolutions = [[output channeels, kernel size(must be uneven)]] where legth of the outer array is the number of convolutions
+        # pooling size is the size of the kernel
+        # layers = [output variables]  where length of the outer array is the number of nn layers
+        # image_shape = [color channels, length and width] yes only quadradic images
 
-        # convolutions is set acording to the temp and convolutions
+        # convolutions is set acording to the image_shape and convolutions
         convs = []
-        convs.append(nn.Conv2d(temp[0], convolutions[0][0], convolutions[0][1]))
-        temp[1] = int((temp[1] - (convolutions[0][1] - 1)) / pooling_size)
+        convs.append(nn.Conv2d(image_shape[0], convolutions[0][0], convolutions[0][1]))
+        image_shape[1] = int((image_shape[1] - (convolutions[0][1] - 1)) / pooling_size)
         for i in range(1, len(convolutions)):
-            temp[0] = convolutions[i][0]
-            temp[1] = int((temp[1] - (convolutions[i][1] - 1)) / pooling_size)
+            image_shape[0] = convolutions[i][0]
+            image_shape[1] = int((image_shape[1] - (convolutions[i][1] - 1)) / pooling_size)
             convs.append(nn.Conv2d(convolutions[i-1][0], convolutions[i][0], convolutions[i][1]))
 
         # layers is set acording to convolution outputs and layers
-        layers_temp = []
-        layers_temp.append(nn.Linear(temp[0] * int(temp[1]) * int(temp[1]), layers[0]))
+        layers_image_shape = []
+        layers_image_shape.append(nn.Linear(image_shape[0] * int(image_shape[1]) * int(image_shape[1]), layers[0]))
         for i in range(1, len(layers)):
-            layers_temp.append(nn.Linear(layers[i-1], layers[i]))
+            layers_image_shape.append(nn.Linear(layers[i-1], layers[i]))
 
-        self.output_from_convs = temp[0] * int(temp[1]) * int(temp[1])
+        self.output_from_convs = image_shape[0] * int(image_shape[1]) * int(image_shape[1])
         self.convs = convs
         self.pool = nn.MaxPool2d(pooling_size, pooling_size)
-        self.layers = layers_temp
+        self.layers = layers_image_shape
 
     def forward(self, x):
         for i in self.convs:
