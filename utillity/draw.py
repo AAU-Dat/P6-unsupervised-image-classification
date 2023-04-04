@@ -54,10 +54,11 @@ def draw_smth(event):
     if event.type == pygame.KEYDOWN and event.key == pygame.K_s:
         save_image(screen, image_counter)
         image_counter += 1
+        clear_screen()
 
     # Check for clear button press
-    if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
-        clear_screen()
+    #if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
+    #    clear_screen()
 
 # Set up screen and caption
 pygame.display.set_caption("Drawing App")
