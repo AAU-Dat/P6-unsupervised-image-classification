@@ -17,8 +17,9 @@ line_width = 20
 # Last position
 last_pos = None
 
+image_counter = 0
 
-def save_image(surface):
+def save_image(surface, img_counter: int):
     pygame.image.save(surface, 'temp.png')
     save_img = torchvision.io.read_image('./temp.png', torchvision.io.ImageReadMode.GRAY)
 
@@ -26,9 +27,10 @@ def save_image(surface):
 
     # Transform the image to 28x28 pixels
     save_img = torchvision.transforms.functional.resize(save_img, (28, 28))
-    
+
     # Save the image
-    torchvision.io.write_png(save_img, './output.png')
+    torchvision.io.write_png(save_img, './' + f'{img_counter}' + '.png')
+
     
 # Clear the screen and start over
 def clear_screen():
@@ -38,6 +40,7 @@ def clear_screen():
 # Draw on the screen
 def draw_smth(event):
     global last_pos
+    global image_counter
     if event.type == pygame.MOUSEBUTTONDOWN:
         last_pos = event.pos
     elif event.type == pygame.MOUSEMOTION:
@@ -49,7 +52,8 @@ def draw_smth(event):
 
     # Check for save button press
     if event.type == pygame.KEYDOWN and event.key == pygame.K_s:
-        save_image(screen)
+        save_image(screen, image_counter)
+        image_counter += 1
 
     # Check for clear button press
     if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
