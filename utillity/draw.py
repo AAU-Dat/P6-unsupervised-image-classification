@@ -29,7 +29,7 @@ def save_image(surface, img_counter: int):
     save_img = torchvision.transforms.functional.resize(save_img, (28, 28))
 
     # Save the image
-    torchvision.io.write_png(save_img, './' + f'{img_counter}' + '.png')
+    torchvision.io.write_png(save_img, './symbols_png/' + f'{img_counter}' + '.png')
 
     
 # Clear the screen and start over
