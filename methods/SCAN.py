@@ -32,12 +32,10 @@ image_shape = [1, 28]
 
 def main():
     # dataset
-    train_loader, test_loader = MNIST(batch_size)
-    train_loader.shape()
-
+    train_loader, test_loader, image_shape = MNIST(batch_size)
 
     #find nerest neigbors 
-    phi_theta = CNN(phi_theta_convolutions, phi_theta_pooling_size, phi_theta_layers, train_loader.shape()).to(device)
+    phi_theta = CNN(phi_theta_convolutions, phi_theta_pooling_size, phi_theta_layers, image_shape).to(device)
 
     optimizer = torch.optim.SGD(phi_theta.parameters(), lr=0.01, momentum=0.5)
     criterion = Euclidian()

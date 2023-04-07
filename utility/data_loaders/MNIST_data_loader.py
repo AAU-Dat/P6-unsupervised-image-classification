@@ -13,11 +13,10 @@ class CustomImageDataset(Dataset):
         self.img_dir = img_dir
         self.transform = transform
 
-
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[0, 0])
         image = torchvision.io.read_image(img_path, torchvision.io.ImageReadMode.GRAY)
         image = image.to(torch.float32)
-
+        print(image.shape)
         self.image_shape = image.shape
 
 
@@ -26,7 +25,7 @@ class CustomImageDataset(Dataset):
     
 
     def shape(self):
-        return self.shape
+        return self.image_shape
 
 
     def __getitem__(self, idx):
@@ -48,7 +47,7 @@ def MNIST(batch_size):
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_loader, test_loader
+    return train_loader, test_loader, [1,28,28]
 
 
 def custom_MNIST(batch_size, foldername):
