@@ -13,8 +13,21 @@ class CustomImageDataset(Dataset):
         self.img_dir = img_dir
         self.transform = transform
 
+
+        img_path = os.path.join(self.img_dir, self.img_labels.iloc[0, 0])
+        image = torchvision.io.read_image(img_path, torchvision.io.ImageReadMode.GRAY)
+        image = image.to(torch.float32)
+
+        self.image_shape = image.shape
+
+
     def __len__(self):
         return len(self.img_labels)
+    
+
+    def shape(self):
+        return self.shape
+
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
