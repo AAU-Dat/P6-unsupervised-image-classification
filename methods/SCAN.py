@@ -4,12 +4,11 @@ from models.CNN import *
 from numpy import *
 from utility.loss_functions import *
 import torch
+import torch.optim as optim
 
-
-
+# CUDNN
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # runs on gpu
 print(torch.cuda.is_available())
-
 
 batch_size = 60000
 
@@ -18,57 +17,64 @@ transforms = torch.nn.Sequential(
     transforms.RandomCrop((28, 28), padding=2)
 )
 
-# phi_theta network settings
-# [outputs, kernal_size]
-phi_theta_convolutions = [[10, 5], [25, 3]]
-# kernal_size
-phi_theta_pooling_size = 2
-# number of nodes
-phi_theta_layers = [150, 100, 50]
-image_shape = [1, 28]
-
-
-
-
 def main():
-    # dataset
+    # Parameters/Varibels shit
+
+    # Data
     train_loader, test_loader, image_shape = MNIST(batch_size)
 
-    #find nerest neigbors 
-    phi_theta = CNN(phi_theta_convolutions, phi_theta_pooling_size, phi_theta_layers, image_shape).to(device)
+    # Model
+    phi_theta = get_phi_theta_network(train_loader)
 
-    optimizer = torch.optim.SGD(phi_theta.parameters(), lr=0.01, momentum=0.5)
-    criterion = Euclidian()
+    # Optimizer
+    optimizer = optim.Adam(phi_theta.parameters(), lr=0.1)
 
+    # Warning
+    
 
-    # train the model
-    n_total_steps = len(train_loader)
-    print(f"\r0 out of {n_total_steps}", end="")
-    for i, (images, labels) in enumerate(train_loader):
-
-        t_images = transforms(images)
-        t_output = phi_theta(t_images)
-
-        output = phi_theta(images)
-        
-        loss = criterion(output, t_output)
-        loss.backward()
-        optimizer.step()
-        
-        print(f"\r{i} out of {n_total_steps}", end="")
-    print("\n phi_theta trained \n")
+    # Loss function
+    # Checkpoint
+    # Main loop
+    # Adjust lr
+    # Train
+    # Evaluate
+    # Evaluate and save the final model
+    # dataset
 
 
-
-    train_loader.dataset.__getitem__(1)
-
-    # Optimize SCAN
-
-    # selflabel
+    # get phi theta model
+    get_phi_theta_network(train_loader)
 
 
 
 if __name__ == "__main__":
     main()
 
-    
+
+
+def get_phi_theta_network(train_loader):
+    # initialize model
+    phi_theta = ConvNet.to(device)
+
+    # optimizer + criterion
+    optimizer = optim.Adam(phi_theta.parameters(), lr=0.1)
+    criterion = Euclidian()
+
+    # train the model
+    n_total_steps = len(train_loader)
+    print(f'\r0 out of {n_total_steps}', end='')
+    for i, (images, labels) in enumerate(train_loader):
+        # make transformed images and run the network on them
+        t_images = transforms(images)
+        t_output = phi_theta(t_images)
+
+        # run the network on the original network
+        output = phi_theta(images)
+
+        # optimize the network for the criterion
+        loss = criterion(output, t_output)
+        loss.backward()
+        optimizer.step()
+        print(f'{i}/{n_total_steps}')
+
+    return phi_theta
