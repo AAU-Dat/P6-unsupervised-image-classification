@@ -1,2 +1,2 @@
 # P6-unsupervised-image-classification
-It would be good if we could use an unsupervised deep learning model in image classification to decrease the cost of labelling. Can we do that?
+The original code is from "https://github.com/wvangansbeke/Unsupervised-Classification" and was altered to use mobilenetv1
